@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>kayevsky</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+            <i class="fas fa-flask"></i>
+            <span>kayevsky</span>
+            </div>
+        <ul class="nav-menu">
+            <li><a href="#" class="nav-link active" data-tab="dashboard">📊 Все заявки</a></li>
+            <li><a href="#" class="nav-link" data-tab="create">➕ Новая заявка</a></li>
+        </ul>
+        </div>
+    </nav>
+
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Dashboard Tab -->
+        <section id="dashboard-tab" class="tab-content active">
+            <div class="section-header">
+                <h1>Мои заявки</h1>
+                <div class="filters">
+                    <input
+                        type="text"
+                        id="search-input"
+                        class="search-box"
+                        placeholder="🔍 Поиск по названию..."
+                    >
+                    <select id="status-filter" class="filter-select">
+                        <option value="">Все статусы</option>
+                        <option value="active">🔴 Активные</option>
+                        <option value="completed">✅ Завершённые</option>
+                        <option value="cancelled">❌ Отменённые</option>
+                    </select>
+                </div>
+            </div>
+            <div id="requests-grid" class="requests-grid">
+                <div class="loading">Загрузка...</div>
+            </div>
+        </section>
+
+        <!-- Create Tab -->
+        <section id="create-tab" class="tab-content">
+            <div class="section-header">
+                <h1>Создать новую заявку</h1>
+            </div>
+            <div class="form-wrapper">
+                <form id="create-form" class="form">
+                    <div class="form-group">
+                        <label for="title">Название работы *</label>
+                        <input
+                            type="text"
+                            id="title"
+                            name="title"
+                            required
+                            placeholder="Например: Лабораторная работа №1"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="student">Фамилия студента *</label>
+                        <input
+                            type="text"
+                            id="student"
+                            name="student"
+                            required
+                            placeholder="Иванов Иван Иванович"
+                        >
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="deadline-date">Дата дедлайна *</label>
+                            <input
+                                type="date"
+                                id="deadline-date"
+                                name="deadline-date"
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label for="deadline-time">Время дедлайна *</label>
+                            <input
+                                type="time"
+                                id="deadline-time"
+                                name="deadline-time"
+                                required
+                                value="23:59"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Описание (опционально)</label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            rows="4"
+                            placeholder="Добавьте детали про задание..."
+                        ></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Создать
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-redo"></i> Очистить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <!-- Request Detail Modal -->
+    <div id="detail-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Детали заявки</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">ID</span>
+                        <span class="detail-value" id="detail-id">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Название</span>
+                        <span class="detail-value" id="detail-title">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Студент</span>
+                        <span class="detail-value" id="detail-student">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Статус</span>
+                        <span class="detail-value" id="detail-status">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Дедлайн</span>
+                        <span class="detail-value" id="detail-deadline">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Осталось</span>
+                        <span class="detail-value" id="detail-remaining">-</span>
+                    </div>
+                    <div class="detail-item full">
+                        <span class="detail-label">Описание</span>
+                        <span class="detail-value" id="detail-description">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Создана</span>
+                        <span class="detail-value" id="detail-created">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Обновлена</span>
+                        <span class="detail-value" id="detail-updated">-</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" id="detail-actions">
+                <!-- Actions dynamically inserted -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Reschedule Modal -->
+    <div id="reschedule-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Перенести дедлайн</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="reschedule-form" class="form">
+                    <div class="form-group">
+                        <label for="reschedule-date">Новая дата *</label>
+                        <input type="date" id="reschedule-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reschedule-time">Новое время *</label>
+                        <input
+                            type="time"
+                            id="reschedule-time"
+                            required
+                            value="23:59"
+                        >
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="saveReschedule()">
+                    <i class="fas fa-save"></i> Сохранить
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('reschedule-modal')">
+                    <i class="fas fa-times"></i> Отмена
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

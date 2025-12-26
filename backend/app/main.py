@@ -1,28 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+from app.database import engine, Base, init_db
+from app.routes import router as requests_router
+import logging
 import os
-from app.database import engine, Base
-from app.routes import router
-from contextlib import asynccontextmanager
 
-# Создание таблиц при запуске
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    print("✅ Таблицы БД созданы/обновлены")
-    yield
-    # Shutdown
-    await engine.dispose()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-app = FastAPI(
-    title="Каёвский API",
-    description="API для управления заявками на лабораторные работы",
-    version="1.0.0",
-    lifespan=lifespan
-)
+app = FastAPI(title="Lab Requests API", version="1.0.0")
 
 # CORS middleware
 app.add_middleware(
@@ -33,19 +22,41 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Включаем маршруты
-app.include_router(router)
+# Include routers
+app.include_router(requests_router)
 
-@app.get("/", tags=["root"])
-async def read_root():
-    """Приветственное сообщение"""
-    return {
-        "message": "Добро пожаловать в Каёвский API! 📚",
-        "docs": "/docs",
-        "openapi": "/openapi.json"
-    }
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
-@app.get("/health", tags=["health"])
+if os.path.isdir(FRONTEND_DIR):
+    app.mount(
+        "/static",
+        StaticFiles(directory=FRONTEND_DIR),
+        name="static",
+    )
+
+@app.on_event("startup")
+async def startup():
+    logger.info("🚀 Starting up...")
+    await init_db()
+    logger.info("✅ Database initialized")
+
+
+@app.get("/health")
 async def health_check():
-    """Проверка здоровья сервиса"""
-    return {"status": "healthy", "service": "kayevsky-api"}
+    return {"status": "ok", "message": "API is running"}
+
+
+@app.get("/")
+async def root():
+    return {"message": "Lab Requests API", "version": "1.0.0"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True
+    )
